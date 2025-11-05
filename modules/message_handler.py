@@ -6,6 +6,7 @@ from utils.logger import setup_logger
 from utils.validators import extract_urls_from_text
 from modules.content_ingestion import ContentIngester
 from modules.storage import Storage
+from modules.content_processing import ContentProcessor
 
 # TODO: Import other modules as we build them
 # from modules.scheduler import Scheduler
@@ -20,6 +21,7 @@ class MessageHandler:
         """Initialize message handler with required modules."""
         self.ingester = ContentIngester()
         self.storage = Storage()
+        self.processor = ContentProcessor()
         
         # TODO: Initialize modules as we build them
         # self.scheduler = Scheduler()
@@ -85,22 +87,35 @@ class MessageHandler:
         if not articles:
             return "❌ Sorry, I couldn't fetch any of those articles. They might be:\n• Behind a paywall\n• Requiring login\n• Temporarily unavailable\n\nPlease try a different URL."
         
-        # Save articles to database
+        # Process and save articles
         saved_count = 0
         for article in articles:
-            article_id = self.storage.save_article(article.to_dict())
+            # Analyze article content
+            analysis = self.processor.analyze_article(article.to_dict())
+            
+            # Update article data with analysis
+            article_dict = article.to_dict()
+            article_dict['category'] = analysis['category']
+            
+            # Save to database with auto-detected category
+            article_id = self.storage.save_article(article_dict)
             if article_id:
                 saved_count += 1
+                logger.info(f"Article saved with category: {analysis['category']}")
         
         # Build response
         if len(urls) == 1:
             article = articles[0] if articles else None
             if article and saved_count > 0:
+                # Get analysis for the article
+                analysis = self.processor.analyze_article(article.to_dict())
+                
                 response = f"✅ Article saved!\n\n"
                 response += f"**{article.title}**\n"
                 response += f"📖 {article.reading_time} min read\n"
                 if article.author:
                     response += f"✍️ By {article.author}\n"
+                response += f"📂 Category: {analysis['category']}\n"
                 response += f"🔗 {article.url}\n\n"
                 response += f"Added to your reading queue!"
                 return response
@@ -111,7 +126,9 @@ class MessageHandler:
             
             for i, article in enumerate(articles, 1):
                 if i <= 3:  # Show first 3
+                    analysis = self.processor.analyze_article(article.to_dict())
                     response += f"{i}. **{article.title}** ({article.reading_time} min)\n"
+                    response += f"   📂 {analysis['category']}\n"
                     response += f"   🔗 {article.url}\n"
             
             if len(articles) > 3:

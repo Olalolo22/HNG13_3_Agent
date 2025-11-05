@@ -1,0 +1,140 @@
+{
+  "_comment_REQUIRED_CHANGES": "UPDATE THE FOLLOWING FIELDS BEFORE DEPLOYING:",
+  "_comment_1": "url: Your agent's public URL (e.g., https://my-agent.herokuapp.com or https://abc123.ngrok.io)",
+  "_comment_2": "provider.organization: Your organization/company name",
+  "_comment_3": "provider.url: Your organization website",
+  "_comment_4": "documentationUrl: (Optional) Your agent's documentation URL or remove this line",
+  "_comment_5": "REMOVE ALL _comment_ LINES AFTER UPDATING",
+  
+  "name": "Smart Read Later Organizer",
+  "description": "An intelligent AI agent that helps you manage and organize your 'read later' content. I learn your reading preferences, categorize articles, and deliver them at optimal times.",
+  
+  "url": "REPLACE_WITH_YOUR_PUBLIC_URL",
+  
+  "version": "1.0.0",
+  "provider": {
+    "organization": "REPLACE_WITH_YOUR_ORGANIZATION_NAME",
+    "url": "REPLACE_WITH_YOUR_ORGANIZATION_URL"
+  },
+  
+  "documentationUrl": "REPLACE_WITH_YOUR_DOCS_URL_OR_REMOVE_THIS_LINE",
+  
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": true
+  },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["application/json", "text/plain"],
+  "skills": [
+    {
+      "id": "save_article",
+      "name": "Save Article for Later",
+      "description": "Saves a URL to your reading queue. I'll fetch the content, categorize it, and deliver it at the optimal time.",
+      "inputModes": ["text/plain"],
+      "outputModes": ["text/plain"],
+      "examples": [
+        {
+          "input": {
+            "parts": [
+              {
+                "text": "https://example.com/interesting-article",
+                "contentType": "text/plain"
+              }
+            ]
+          },
+          "output": {
+            "parts": [
+              {
+                "text": "✅ Article saved! I'll categorize it and add it to your reading queue.",
+                "contentType": "text/plain"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "list_queue",
+      "name": "Show Reading Queue",
+      "description": "Shows your current reading queue with all saved articles.",
+      "inputModes": ["text/plain"],
+      "outputModes": ["text/plain"],
+      "examples": [
+        {
+          "input": {
+            "parts": [
+              {
+                "text": "list",
+                "contentType": "text/plain"
+              }
+            ]
+          },
+          "output": {
+            "parts": [
+              {
+                "text": "📚 Your Reading Queue:\n\n1. Article Title (5 min read)\n   Category: Tech\n   https://example.com/article1",
+                "contentType": "text/plain"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "show_categories",
+      "name": "Show Categories",
+      "description": "Shows your articles grouped by category.",
+      "inputModes": ["text/plain"],
+      "outputModes": ["text/plain"],
+      "examples": [
+        {
+          "input": {
+            "parts": [
+              {
+                "text": "categories",
+                "contentType": "text/plain"
+              }
+            ]
+          },
+          "output": {
+            "parts": [
+              {
+                "text": "📁 Your Categories:\n\n**Tech** (5 articles)\n**Business** (3 articles)\n**Science** (2 articles)",
+                "contentType": "text/plain"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "show_stats",
+      "name": "Show Reading Statistics",
+      "description": "Shows your reading statistics and patterns.",
+      "inputModes": ["text/plain"],
+      "outputModes": ["text/plain"],
+      "examples": [
+        {
+          "input": {
+            "parts": [
+              {
+                "text": "stats",
+                "contentType": "text/plain"
+              }
+            ]
+          },
+          "output": {
+            "parts": [
+              {
+                "text": "📊 Your Reading Stats:\n\n• Articles saved: 24\n• Articles read: 18\n• Favorite category: Tech\n• Average reading time: 7 minutes",
+                "contentType": "text/plain"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "supportsAuthenticatedExtendedCard": false
+}

@@ -47,7 +47,23 @@ def main():
             print("Please ensure agent_card.json is in the project root directory.\n")
             sys.exit(1)
         
-        logger.info(f"Agent card found at: {agent_card_path.absolute()}")
+        # Validate agent_card.json has been configured
+        import json
+        with open(agent_card_path, 'r') as f:
+            agent_card = json.load(f)
+        
+        # Check for placeholder values
+        if "REPLACE_" in agent_card.get('url', ''):
+            logger.error("agent_card.json not configured!")
+            print("\n❌ ERROR: agent_card.json has not been configured!")
+            print("\nPlease update agent_card.json with your actual values:")
+            print("  • url: Your public agent URL (e.g., https://my-agent.herokuapp.com)")
+            print("  • provider.organization: Your organization name")
+            print("  • provider.url: Your organization website")
+            print("\nSee agent_card.json for detailed instructions.\n")
+            sys.exit(1)
+        
+        logger.info(f"Agent card found and validated at: {agent_card_path.absolute()}")
         
         # Start the server
         print("\n🚀 Starting Smart Read Later Organizer...")
