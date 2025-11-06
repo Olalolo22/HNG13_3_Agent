@@ -7,9 +7,7 @@ from utils.validators import extract_urls_from_text
 from modules.content_ingestion import ContentIngester
 from modules.storage import Storage
 from modules.content_processing import ContentProcessor
-
-# TODO: Import other modules as we build them
-# from modules.scheduler import Scheduler
+from modules.scheduler import Scheduler
 
 logger = setup_logger(__name__)
 
@@ -22,9 +20,7 @@ class MessageHandler:
         self.ingester = ContentIngester()
         self.storage = Storage()
         self.processor = ContentProcessor()
-        
-        # TODO: Initialize modules as we build them
-        # self.scheduler = Scheduler()
+        self.scheduler = Scheduler(self.storage)
         
         logger.info("MessageHandler initialized")
     
@@ -56,6 +52,17 @@ class MessageHandler:
         
         elif command in ['stats', 'statistics']:
             return self._handle_stats_command()
+        
+        elif command in ['digest', 'summary']:
+            return self._handle_digest_command()
+        
+        elif command.startswith('suggest'):
+            # Extract minutes if provided: "suggest 30"
+            parts = command.split()
+            minutes = 30  # default
+            if len(parts) > 1 and parts[1].isdigit():
+                minutes = int(parts[1])
+            return self._handle_suggest_command(minutes)
         
         elif command in ['help', '?']:
             return self._handle_help_command()
@@ -149,22 +156,27 @@ class MessageHandler:
         """
         logger.info("Handling list command")
         
-        # Get articles from database
-        articles = self.storage.get_reading_queue(limit=10)
+        # Get prioritized articles from scheduler
+        articles = self.scheduler.prioritize_queue(limit=10)
         
         if not articles:
             return "📚 Your reading queue is empty!\n\nSend me URLs to get started."
         
-        response = f"📚 Your Reading Queue ({len(articles)} articles):\n\n"
+        response = f"📚 Your Prioritized Reading Queue ({len(articles)} articles):\n\n"
         
         for i, article in enumerate(articles, 1):
-            response += f"{i}. **{article['title']}** ({article['reading_time']} min read)\n"
+            response += f"{i}. **{article['title']}** ({article['reading_time']} min)\n"
             if article.get('category'):
                 response += f"   📂 {article['category']}\n"
+            
+            # Add reading time suggestion
+            suggestion = self.scheduler.get_recommended_reading_time(article)
+            response += f"   💡 {suggestion}\n"
             response += f"   🔗 {article['url']}\n\n"
         
-        if len(articles) >= 10:
-            response += "_Showing latest 10 articles_"
+        # Add next delivery suggestion
+        next_delivery = self.scheduler.get_next_delivery_time()
+        response += f"_Next digest scheduled for: {next_delivery.strftime('%I:%M %p, %A')}_"
         
         return response
     
@@ -192,7 +204,52 @@ class MessageHandler:
         
         return response
     
-    def _handle_stats_command(self) -> str:
+    def _handle_digest_command(self) -> str:
+        """
+        Handle 'digest' command to show curated reading digest.
+        
+        Returns:
+            str: Formatted digest
+        """
+        logger.info("Handling digest command")
+        
+        # Get optimal batch size based on user patterns
+        batch_size = self.scheduler.get_optimal_batch_size()
+        
+        # Create digest
+        digest = self.scheduler.create_digest(num_items=batch_size)
+        
+        # Format and return
+        return self.scheduler.format_digest_message(digest)
+    
+    def _handle_suggest_command(self, minutes: int) -> str:
+        """
+        Handle 'suggest' command to suggest reading for available time.
+        
+        Args:
+            minutes: Minutes available for reading
+            
+        Returns:
+            str: Suggested articles
+        """
+        logger.info(f"Handling suggest command for {minutes} minutes")
+        
+        # Get articles that fit in time
+        articles = self.scheduler.suggest_reading_session(available_minutes=minutes)
+        
+        if not articles:
+            return f"📚 No articles fit in {minutes} minutes.\n\nTry a longer time slot!"
+        
+        total_time = sum(a.get('reading_time', 0) for a in articles)
+        
+        response = f"📚 **Reading Suggestions for {minutes} minutes**\n\n"
+        response += f"I found {len(articles)} articles ({total_time} min total):\n\n"
+        
+        for i, article in enumerate(articles, 1):
+            response += f"{i}. **{article['title']}** ({article['reading_time']} min)\n"
+            response += f"   🔗 {article['url']}\n"
+        
+        return response
         """
         Handle 'stats' command to show reading statistics.
         
@@ -237,7 +294,9 @@ class MessageHandler:
 • I'll fetch, categorize, and organize it for you
 
 **Commands:**
-• `list` - Show your reading queue
+• `list` - Show your prioritized reading queue
+• `digest` - Get a curated reading digest
+• `suggest 30` - Suggest articles for 30 minutes
 • `categories` - Show content by category
 • `stats` - Show your reading statistics
 • `help` - Show this help message
@@ -245,9 +304,10 @@ class MessageHandler:
 **Examples:**
 • "https://example.com/article"
 • "list"
-• "categories"
+• "digest"
+• "suggest 15"
 
-I learn from your reading patterns to deliver content when you're most likely to read it! 📚"""
+I learn from your reading patterns to deliver content at the best times! 📚"""
     
     def _handle_unknown_input(self, text: str) -> str:
         """
