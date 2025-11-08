@@ -1,23 +1,14 @@
 {
-  "_comment_REQUIRED_CHANGES": "UPDATE THE FOLLOWING FIELDS BEFORE DEPLOYING:",
-  "_comment_1": "url: Your agent's public URL (e.g., https://my-agent.herokuapp.com or https://abc123.ngrok.io)",
-  "_comment_2": "provider.organization: Your organization/company name",
-  "_comment_3": "provider.url: Your organization website",
-  "_comment_4": "documentationUrl: (Optional) Your agent's documentation URL or remove this line",
-  "_comment_5": "REMOVE ALL _comment_ LINES AFTER UPDATING",
-  
   "name": "Smart Read Later Organizer",
   "description": "An intelligent AI agent that helps you manage and organize your 'read later' content. I learn your reading preferences, categorize articles, and deliver them at optimal times.",
   
-  "url": "REPLACE_WITH_YOUR_PUBLIC_URL",
+  "url": "REPLACE_WITH_RAILWAY_URL_AFTER_DEPLOYMENT",
   
   "version": "1.0.0",
   "provider": {
-    "organization": "REPLACE_WITH_YOUR_ORGANIZATION_NAME",
-    "url": "REPLACE_WITH_YOUR_ORGANIZATION_URL"
+    "organization": "Suleiman.Moh",
+    "url": "https://github.com/Olalolo22"
   },
-  
-  "documentationUrl": "REPLACE_WITH_YOUR_DOCS_URL_OR_REMOVE_THIS_LINE",
   
   "capabilities": {
     "streaming": false,
