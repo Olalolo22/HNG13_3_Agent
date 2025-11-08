@@ -40,7 +40,7 @@ class Storage:
         Yields:
             sqlite3.Connection: Database connection
         """
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30.0)  # 30 second timeout
         conn.row_factory = sqlite3.Row  # Return rows as dictionaries
         try:
             yield conn
@@ -163,8 +163,11 @@ class Storage:
                 article_id = cursor.lastrowid
                 logger.info(f"Article saved with ID {article_id}: {article_data['title']}")
                 
-                # Log save event
-                self._log_event(article_id, 'saved')
+                # Log save event (in same transaction)
+                cursor.execute('''
+                    INSERT INTO reading_stats (article_id, event_type, timestamp, metadata)
+                    VALUES (?, ?, ?, ?)
+                ''', (article_id, 'saved', datetime.now().isoformat(), None))
                 
                 return article_id
         

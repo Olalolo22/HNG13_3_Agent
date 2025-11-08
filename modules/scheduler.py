@@ -187,7 +187,7 @@ class Scheduler:
             limit: Maximum number of items to return
             
         Returns:
-            List of prioritized articles
+            List of prioritized articles (empty list if none)
         """
         logger.info(f"Prioritizing queue (limit={limit})")
         
@@ -195,7 +195,7 @@ class Scheduler:
         articles = self.storage.get_reading_queue(limit=50)
         
         if not articles:
-            return []
+            return []  # Return empty list instead of None
         
         # Score each article
         scored_articles = []
@@ -253,7 +253,7 @@ class Scheduler:
             score += 2  # Slight bonus for articles with author info
         
         # Factor 5: Description quality (longer description = more curated)
-        description = article.get('description', '')
+        description = article.get('description') or ""
         if len(description) > 100:
             score += 2
         

@@ -5,9 +5,14 @@ Run this to verify everything works before deployment.
 import sys
 from pathlib import Path
 import json
+import os
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+# Change to project root directory
+os.chdir(project_root)
 
 print("\n" + "="*80)
 print("SMART READ LATER ORGANIZER - COMPREHENSIVE TEST SUITE")
