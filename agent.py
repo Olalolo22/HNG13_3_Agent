@@ -5,6 +5,7 @@ An intelligent AI agent for Telex that helps manage and organize "read later" co
 Implements the A2A (Agent-to-Agent) protocol for seamless Telex integration.
 """
 import sys
+import os
 from pathlib import Path
 
 # Add project root to path
@@ -67,15 +68,19 @@ def main():
         
         # Start the server
         print("\n🚀 Starting Smart Read Later Organizer...")
-        print(f"\n📍 Agent Card: http://localhost:{Config.WEBHOOK_PORT}/.well-known/agent.json")
-        print(f"📍 JSON-RPC Endpoint: http://localhost:{Config.WEBHOOK_PORT}/")
-        print(f"📍 Health Check: http://localhost:{Config.WEBHOOK_PORT}/health")
+        
+        # Use PORT from environment if available (for deployment platforms)
+        port = int(os.getenv('PORT', Config.WEBHOOK_PORT))
+        
+        print(f"\n📍 Agent Card: http://localhost:{port}/.well-known/agent.json")
+        print(f"📍 JSON-RPC Endpoint: http://localhost:{port}/")
+        print(f"📍 Health Check: http://localhost:{port}/health")
         print("\n✨ Agent is ready to receive messages from Telex!\n")
         print("Press Ctrl+C to stop the server\n")
         
         server.run(
             host=Config.WEBHOOK_HOST,
-            port=Config.WEBHOOK_PORT,
+            port=port,
             debug=False
         )
     
